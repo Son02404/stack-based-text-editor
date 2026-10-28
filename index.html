@@ -1,0 +1,1092 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StackLab | Stack-Based Text Editor</title>
+
+<style>
+:root {
+    --blue: #2563eb;
+    --blue-dark: #173b75;
+    --purple: #7c3aed;
+    --green: #059669;
+    --red: #e11d48;
+    --background: #f1f5fb;
+    --text: #17233f;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+button, textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: 0;
+    transition: 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(0.96);
+}
+
+button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.topbar {
+    min-height: 82px;
+    background: linear-gradient(115deg, #142c59, #174c88);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 4%;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.brand-icon {
+    font-size: 36px;
+}
+
+.brand h1 {
+    font-size: 22px;
+    line-height: 1.3;
+}
+
+.brand p {
+    font-size: 12px;
+    color: #d4e5ff;
+}
+
+.top-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.top-nav a {
+    color: white;
+    text-decoration: none;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.top-nav a:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    min-height: calc(100vh - 82px);
+}
+
+.sidebar {
+    background: linear-gradient(180deg, #17345f, #102748);
+    padding: 25px 14px;
+    color: white;
+}
+
+.sidebar-title {
+    font-size: 11px;
+    color: #9db7db;
+    letter-spacing: 1.5px;
+    margin: 0 12px 14px;
+}
+
+.side-link {
+    display: block;
+    padding: 13px 14px;
+    color: #e1ecff;
+    text-decoration: none;
+    border-radius: 9px;
+    margin-bottom: 7px;
+    font-size: 14px;
+}
+
+.side-link:hover,
+.side-link.active {
+    background: #285b9a;
+    color: white;
+}
+
+.sidebar-note {
+    margin-top: 35px;
+    padding: 14px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    font-size: 12px;
+    color: #d4e5ff;
+}
+
+main {
+    min-width: 0;
+    padding: 25px;
+}
+
+.hero {
+    padding: 32px;
+    border-radius: 18px;
+    color: white;
+    background:
+        radial-gradient(circle at 85% 20%, rgba(255,255,255,.17), transparent 28%),
+        linear-gradient(120deg, #2563eb, #4f46e5 60%, #7c3aed);
+    box-shadow: 0 10px 30px rgba(37,99,235,.15);
+    margin-bottom: 23px;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    opacity: .85;
+}
+
+.hero h2 {
+    font-size: clamp(25px, 3vw, 36px);
+    margin: 7px 0;
+}
+
+.hero p {
+    max-width: 720px;
+    color: #eff6ff;
+}
+
+.hero-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.hero-pill {
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,.22);
+    background: rgba(255,255,255,.12);
+    border-radius: 9px;
+    font-size: 12px;
+}
+
+.section {
+    scroll-margin-top: 20px;
+    margin-bottom: 23px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.section-heading h2 {
+    font-size: 20px;
+}
+
+.section-heading p {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.card {
+    background: var(--white);
+    border: 1px solid #e8edf5;
+    border-radius: 15px;
+    padding: 23px;
+    box-shadow: 0 4px 14px rgba(31,55,90,.035);
+    min-width: 0;
+}
+
+.card h3 {
+    font-size: 17px;
+    margin-bottom: 4px;
+}
+
+.subtext {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 17px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.btn-blue { background: var(--blue); }
+.btn-green { background: var(--green); }
+.btn-red { background: var(--red); }
+.btn-dark { background: #475569; }
+.btn-light {
+    background: #edf3ff;
+    color: #1d4ed8;
+    border: 1px solid #d7e4ff;
+}
+
+textarea {
+    display: block;
+    width: 100%;
+    min-height: 245px;
+    padding: 16px;
+    border: 1px solid #cbd8eb;
+    border-radius: 10px;
+    color: #182944;
+    background: #fcfdff;
+    resize: vertical;
+    line-height: 1.8;
+    outline: none;
+}
+
+textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.09);
+}
+
+.editor-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #ecfdf5;
+    color: #047857;
+    padding: 7px 10px;
+    border-radius: 8px;
+}
+
+.status-dot {
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
+    background: #10b981;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 17px;
+}
+
+.stat {
+    padding: 17px;
+    border-radius: 12px;
+    border: 1px solid #dbeafe;
+    background: linear-gradient(140deg, #eff6ff, #ffffff);
+}
+
+.stat.purple {
+    border-color: #e9d5ff;
+    background: linear-gradient(140deg, #f5f3ff, #ffffff);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.stat-number {
+    font-size: 34px;
+    font-weight: 750;
+    line-height: 1.5;
+}
+
+.stat small {
+    color: var(--muted);
+}
+
+.stack-card {
+    margin-top: 16px;
+    padding: 15px;
+    border-radius: 11px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+}
+
+.stack-card.purple {
+    border-color: #ddd6fe;
+    background: #f5f3ff;
+}
+
+.stack-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #1d4ed8;
+}
+
+.stack-card.purple .stack-title {
+    color: #6d28d9;
+}
+
+.stack-items {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 7px;
+}
+
+.stack-item {
+    padding: 10px;
+    background: rgba(255,255,255,.85);
+    border: 1px solid #dbeafe;
+    border-radius: 7px;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.stack-item.top {
+    border-color: #93c5fd;
+    font-weight: 700;
+}
+
+.empty {
+    padding: 14px;
+    text-align: center;
+    color: var(--muted);
+    background: rgba(255,255,255,.7);
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.example-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.example-card {
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fbfdff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.example-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.example-card h3 {
+    font-size: 15px;
+}
+
+.example-card p {
+    font-size: 12px;
+    color: var(--muted);
+    flex-grow: 1;
+}
+
+.sample {
+    background: #f1f5f9;
+    padding: 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.example-card button {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.steps {
+    display: grid;
+    gap: 13px;
+    margin-top: 15px;
+}
+
+.step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.step-number {
+    flex: 0 0 29px;
+    height: 29px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: white;
+    background: var(--blue);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.step p {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.real-world-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.use-case {
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fbfdff;
+}
+
+.use-case h3 {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.use-case p {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+footer {
+    padding: 22px 5px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .example-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        padding: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .sidebar-title,
+    .sidebar-note {
+        display: none;
+    }
+
+    .side-link {
+        margin: 0;
+        padding: 9px 10px;
+        font-size: 12px;
+    }
+
+    main {
+        padding: 15px;
+    }
+
+    .hero {
+        padding: 23px;
+    }
+
+    .example-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 420px) {
+    .stat-grid,
+    .real-world-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        padding: 15px;
+    }
+
+    .brand h1 {
+        font-size: 18px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">📚</div>
+        <div>
+            <h1>StackLab</h1>
+            <p>Stack-Based Text Editor · Data Structures Project</p>
+        </div>
+    </div>
+
+    <nav class="top-nav">
+        <a href="#home">Home</a>
+        <a href="#editor">Editor</a>
+        <a href="#examples">Examples</a>
+        <a href="#how-it-works">How It Works</a>
+    </nav>
+</header>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-title">WORKSPACE</div>
+        <a class="side-link active" href="#home">⌂ &nbsp; Dashboard</a>
+        <a class="side-link" href="#editor">✎ &nbsp; Text Editor</a>
+        <a class="side-link" href="#examples">▤ &nbsp; Examples</a>
+        <a class="side-link" href="#visualization">▥ &nbsp; Stack Visualization</a>
+
+        <div class="sidebar-title" style="margin-top:28px">LEARN</div>
+        <a class="side-link" href="#how-it-works">◉ &nbsp; How It Works</a>
+        <a class="side-link" href="#applications">▣ &nbsp; Real-World Uses</a>
+
+        <div class="sidebar-note">
+            <strong>Learning objective</strong>
+            <br><br>
+            Understand the LIFO principle through a practical, interactive
+            application.
+        </div>
+    </aside>
+
+    <main>
+
+        <section class="hero" id="home">
+            <div class="eyebrow">Data Structures Project</div>
+            <h2>Stack-Based Text Editor</h2>
+            <p>
+                Explore how stacks work through interactive text editing.
+                Type, undo, redo, and visualize the Last In, First Out
+                principle in action.
+            </p>
+
+            <div class="hero-pills">
+                <div class="hero-pill">↶ Undo & Redo</div>
+                <div class="hero-pill">▥ Live Stack Visualization</div>
+                <div class="hero-pill">▤ Interactive Examples</div>
+                <div class="hero-pill">✓ Educational Tool</div>
+            </div>
+        </section>
+
+        <div class="grid">
+
+            <section class="card section" id="editor">
+                <div class="section-heading">
+                    <div>
+                        <h2>✎ Text Editor</h2>
+                        <p>Enter text and test the stack operations.</p>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <button class="btn btn-blue" id="undoButton" disabled>
+                        ↶ Undo
+                    </button>
+                    <button class="btn btn-green" id="redoButton" disabled>
+                        ↷ Redo
+                    </button>
+                    <button class="btn btn-red" id="clearButton">
+                        Clear Text
+                    </button>
+                    <button class="btn btn-dark" id="resetButton">
+                        ⟳ Reset
+                    </button>
+                </div>
+
+                <textarea
+                    id="editorArea"
+                    aria-label="Text editor"
+                    placeholder="Start typing here, or select an example below..."
+                ></textarea>
+
+                <div class="editor-footer">
+                    <span id="characterCount">0 characters</span>
+                    <span class="status">
+                        <span class="status-dot"></span>
+                        <span id="statusMessage">Ready to edit</span>
+                    </span>
+                </div>
+            </section>
+
+            <section class="card section" id="visualization">
+                <h2>▥ Stack Status</h2>
+                <p class="subtext">Live statistics from the editor.</p>
+
+                <div class="stat-grid">
+                    <div class="stat">
+                        <div class="stat-label">Undo Stack</div>
+                        <div class="stat-number" id="undoCount">0</div>
+                        <small>Saved states</small>
+                    </div>
+
+                    <div class="stat purple">
+                        <div class="stat-label">Redo Stack</div>
+                        <div class="stat-number" id="redoCount">0</div>
+                        <small>Saved states</small>
+                    </div>
+                </div>
+
+                <div class="stack-card">
+                    <div class="stack-title">🔵 Undo Stack · Top first</div>
+                    <div class="stack-items" id="undoItems">
+                        <div class="empty">No saved states yet.</div>
+                    </div>
+                </div>
+
+                <div class="stack-card purple">
+                    <div class="stack-title">🟣 Redo Stack · Top first</div>
+                    <div class="stack-items" id="redoItems">
+                        <div class="empty">No saved states yet.</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <section class="card section" id="examples">
+            <div class="section-heading">
+                <div>
+                    <h2>▤ Practical Examples</h2>
+                    <p>Load a sample, then try Undo and Redo.</p>
+                </div>
+            </div>
+
+            <div class="example-grid">
+
+                <article class="example-card">
+                    <div class="example-icon">📘</div>
+                    <h3>Student Notes</h3>
+                    <p>
+                        Learn about stacks and the Last In, First Out principle.
+                    </p>
+                    <div class="sample">
+                        A stack follows the LIFO principle.
+                    </div>
+                    <button class="btn btn-blue example-button"
+                        data-example="A stack is a linear data structure that follows the Last In, First Out (LIFO) principle. It is used in many real-world applications.">
+                        Load Example
+                    </button>
+                </article>
+
+                <article class="example-card">
+                    <div class="example-icon">✎</div>
+                    <h3>Correcting Text</h3>
+                    <p>
+                        Demonstrate editing and undoing a sentence.
+                    </p>
+                    <div class="sample">
+                        I am studing Information Technology.
+                    </div>
+                    <button class="btn btn-green example-button"
+                        data-example="I am studying Information Technology.">
+                        Load Example
+                    </button>
+                </article>
+
+                <article class="example-card">
+                    <div class="example-icon">⌘</div>
+                    <h3>Programming Notes</h3>
+                    <p>
+                        Understand Push, Pop, and Peek operations.
+                    </p>
+                    <div class="sample">
+                        Push adds an item. Pop removes the top item.
+                    </div>
+                    <button class="btn btn-blue example-button"
+                        data-example="Push adds an item to the top of the stack. Pop removes the top item. Peek examines the top item without removing it.">
+                        Load Example
+                    </button>
+                </article>
+
+            </div>
+        </section>
+
+        <section class="card section" id="how-it-works">
+            <h2>⚙ How It Works</h2>
+            <p class="subtext">
+                Follow the steps to understand the stack algorithm.
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>A user edits the text</strong>
+                        <p>The previous text state is pushed onto the Undo Stack.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>The user selects Undo</strong>
+                        <p>The current state is saved to the Redo Stack, and the most recent previous state is popped from the Undo Stack.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>
+                        <strong>The user selects Redo</strong>
+                        <p>The most recent undone state is restored from the Redo Stack.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>
+                        <strong>A new edit is made after Undo</strong>
+                        <p>The Redo Stack is cleared because the previous redo history no longer represents the new editing sequence.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card section" id="applications">
+            <h2>💡 Real-World Applications</h2>
+            <p class="subtext">
+                Stacks solve problems in many areas of computing.
+            </p>
+
+            <div class="real-world-grid">
+                <article class="use-case">
+                    <h3>Text Editors</h3>
+                    <p>Save previous states to support Undo and Redo operations.</p>
+                </article>
+
+                <article class="use-case">
+                    <h3>Web Browsers</h3>
+                    <p>Stack-based techniques can manage navigation history.</p>
+                </article>
+
+                <article class="use-case">
+                    <h3>Function Calls</h3>
+                    <p>The call stack tracks nested function execution and return locations.</p>
+                </article>
+
+                <article class="use-case">
+                    <h3>Expression Evaluation</h3>
+                    <p>Stacks help process mathematical operators and parentheses.</p>
+                </article>
+
+                <article class="use-case">
+                    <h3>Bracket Matching</h3>
+                    <p>Compilers use stacks to help check matching parentheses and brackets.</p>
+                </article>
+
+                <article class="use-case">
+                    <h3>Reversing Data</h3>
+                    <p>Push and Pop operations can reverse the order of characters or items.</p>
+                </article>
+            </div>
+        </section>
+
+        <footer>
+            StackLab · Stack Data Structure Demonstration
+            <br>
+            Built with HTML, CSS and JavaScript
+        </footer>
+
+    </main>
+</div>
+
+<script>
+"use strict";
+
+// Stack data structures
+const undoStack = [];
+const redoStack = [];
+
+const editorArea = document.getElementById("editorArea");
+const undoButton = document.getElementById("undoButton");
+const redoButton = document.getElementById("redoButton");
+const clearButton = document.getElementById("clearButton");
+const resetButton = document.getElementById("resetButton");
+
+const undoCount = document.getElementById("undoCount");
+const redoCount = document.getElementById("redoCount");
+const undoItems = document.getElementById("undoItems");
+const redoItems = document.getElementById("redoItems");
+const statusMessage = document.getElementById("statusMessage");
+const characterCount = document.getElementById("characterCount");
+
+let currentText = "";
+let typingTimer = null;
+
+// Push an item onto the top of a stack.
+function push(stack, value) {
+    stack.push(value);
+}
+
+// Pop the most recently added item from a stack.
+function pop(stack) {
+    return stack.pop();
+}
+
+// Update counters, buttons and the visual stack display.
+function renderStack(stack, container) {
+    container.replaceChildren();
+
+    if (stack.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No saved states yet.";
+        container.appendChild(empty);
+        return;
+    }
+
+    // Show the newest item at the top.
+    [...stack].reverse().forEach((value, index) => {
+        const item = document.createElement("div");
+        item.className = "stack-item";
+
+        if (index === 0) {
+            item.classList.add("top");
+        }
+
+        const preview = value.length > 75
+            ? value.slice(0, 75) + "..."
+            : value;
+
+        item.textContent =
+            (index === 0 ? "TOP → " : "") +
+            (preview || "(empty text)");
+
+        container.appendChild(item);
+    });
+}
+
+function updateDisplay() {
+    undoCount.textContent = undoStack.length;
+    redoCount.textContent = redoStack.length;
+
+    undoButton.disabled = undoStack.length === 0;
+    redoButton.disabled = redoStack.length === 0;
+
+    characterCount.textContent =
+        editorArea.value.length + " characters";
+
+    renderStack(undoStack, undoItems);
+    renderStack(redoStack, redoItems);
+}
+
+// Save changes in groups after a short pause in typing.
+// This makes Undo more natural than saving every keystroke.
+function scheduleTypingSave() {
+    clearTimeout(typingTimer);
+
+    typingTimer = setTimeout(() => {
+        if (editorArea.value === currentText) {
+            return;
+        }
+
+        push(undoStack, currentText);
+
+        currentText = editorArea.value;
+
+        // A new editing action invalidates redo history.
+        redoStack.length = 0;
+
+        statusMessage.textContent = "Changes saved to Undo Stack";
+        updateDisplay();
+    }, 600);
+}
+
+editorArea.addEventListener("input", () => {
+    statusMessage.textContent = "Editing...";
+    characterCount.textContent =
+        editorArea.value.length + " characters";
+
+    scheduleTypingSave();
+});
+
+// Ensure pending edits are saved before Undo or Redo.
+function flushPendingTyping() {
+    clearTimeout(typingTimer);
+
+    if (editorArea.value !== currentText) {
+        push(undoStack, currentText);
+        currentText = editorArea.value;
+        redoStack.length = 0;
+    }
+}
+
+// Undo the latest saved change.
+undoButton.addEventListener("click", () => {
+    flushPendingTyping();
+
+    if (undoStack.length === 0) {
+        statusMessage.textContent = "Nothing to undo";
+        updateDisplay();
+        return;
+    }
+
+    push(redoStack, currentText);
+    currentText = pop(undoStack);
+    editorArea.value = currentText;
+
+    statusMessage.textContent = "Undo completed";
+    updateDisplay();
+});
+
+// Redo the latest undone change.
+redoButton.addEventListener("click", () => {
+    flushPendingTyping();
+
+    if (redoStack.length === 0) {
+        statusMessage.textContent = "Nothing to redo";
+        updateDisplay();
+        return;
+    }
+
+    push(undoStack, currentText);
+    currentText = pop(redoStack);
+    editorArea.value = currentText;
+
+    statusMessage.textContent = "Redo completed";
+    updateDisplay();
+});
+
+// Clear the editor but preserve Undo functionality.
+clearButton.addEventListener("click", () => {
+    flushPendingTyping();
+
+    if (currentText === "") {
+        statusMessage.textContent = "Editor is already empty";
+        return;
+    }
+
+    push(undoStack, currentText);
+    currentText = "";
+    editorArea.value = "";
+    redoStack.length = 0;
+
+    statusMessage.textContent = "Text cleared — Undo can restore it";
+    updateDisplay();
+});
+
+// Load an example and save the previous state.
+function loadExample(text) {
+    flushPendingTyping();
+
+    if (text === currentText) {
+        statusMessage.textContent = "Example is already loaded";
+        return;
+    }
+
+    push(undoStack, currentText);
+
+    currentText = text;
+    editorArea.value = text;
+    redoStack.length = 0;
+
+    statusMessage.textContent = "Example loaded successfully";
+    updateDisplay();
+
+    document.getElementById("editor").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+document.querySelectorAll(".example-button").forEach(button => {
+    button.addEventListener("click", () => {
+        loadExample(button.dataset.example);
+    });
+});
+
+// Reset the application to its original state.
+resetButton.addEventListener("click", () => {
+    clearTimeout(typingTimer);
+
+    undoStack.length = 0;
+    redoStack.length = 0;
+
+    currentText = "";
+    editorArea.value = "";
+
+    statusMessage.textContent = "Demo reset — ready to edit";
+    updateDisplay();
+});
+
+// Initial state
+updateDisplay();
+</script>
+
+</body>
+</html>
+```
